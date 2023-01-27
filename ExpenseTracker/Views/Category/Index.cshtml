@@ -1,14 +1,25 @@
 ﻿@model IEnumerable<ExpenseTracker.Models.Category>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Categories";
 }
 
-<h1>Index</h1>
+<div class="row">
+    <div class="mb-2 d-flex">
+        <div class="flex-grow-1">
+            <h3 class="fw-bold">@ViewData["Title"]</h3>
+        </div>
+        <div>
+            <a class="btn btn-success" href="/Category/AddOrEdit">
+                + New Category
+            </a>
+        </div>
+    </div>
+</div>
 
-<p>
+@*<p>
     <a asp-action="AddOrEdit">Create New</a>
-</p>
+</p>*@
 
 <ejs-grid id="categories" dataSource="@Model" gridLines="None" allowSorting="true" allowPaging="true">
     <e-grid-columns>
