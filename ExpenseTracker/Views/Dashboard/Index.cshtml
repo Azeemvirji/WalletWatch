@@ -3,4 +3,18 @@
 *@
 @{
 }
-<img src="images/Contruction.png" height="400px"/>
+<h1>Income</h1>
+<ejs-grid id="income" dataSource="@Model.Item1" gridLines="None">
+    <e-grid-columns>
+        <e-grid-column headerText="Category" field="Category.TitleWithIcon"></e-grid-column>
+        <e-grid-column headerText="Amount" field="Amount"></e-grid-column>
+    </e-grid-columns>
+</ejs-grid>
+
+<h1>Expense</h1>
+<ejs-grid id="expense" dataSource="@Model.Item2" gridLines="None">
+    <e-grid-columns>
+        <e-grid-column headerText="Category" field="Category.TitleWithIcon"></e-grid-column>
+        <e-grid-column headerText="Amount" field="Amount"></e-grid-column>
+    </e-grid-columns>
+</ejs-grid>
