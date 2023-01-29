@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace ExpenseTracker.Controllers
 {
@@ -14,16 +15,18 @@ namespace ExpenseTracker.Controllers
     public class TransactionController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public TransactionController(ApplicationDbContext context)
+        public TransactionController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Transaction
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Transactions.Include(t => t.Category);
+            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User))).Include(t => t.Category);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -37,7 +40,7 @@ namespace ExpenseTracker.Controllers
 
             var transaction = await _context.Transactions
                 .Include(t => t.Category)
-                .FirstOrDefaultAsync(m => m.TransactionId == id);
+                .FirstOrDefaultAsync(m => m.TransactionId == id && m.UserId == this.GetCurrentUserId());
             if (transaction == null)
             {
                 return NotFound();
@@ -54,7 +57,17 @@ namespace ExpenseTracker.Controllers
             if (id == 0)
                 return View(new Transaction());
             else
-                return View(_context.Transactions.Find(id));
+            {
+                var transaction = _context.Transactions.Find(id);
+                if (transaction != null && transaction.UserId == this.GetCurrentUserId())
+                {
+                    return View(transaction);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
         }
 
         // POST: Transaction/Create
@@ -62,37 +75,27 @@ namespace ExpenseTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("TransactionId,CategoryId,Amount,Note,Date")] Transaction transaction)
+        public async Task<IActionResult> AddOrEdit([Bind("TransactionId,UserId,CategoryId,Amount,Note,Date")] Transaction transaction)
         {
+            var userId = this.GetCurrentUserId();
             if (ModelState.IsValid)
             {
                 if (transaction.TransactionId == 0)
+                {
+                    transaction.UserId = userId;
                     _context.Add(transaction);
+                }
                 else
-                    _context.Update(transaction);
+                {
+                    if (transaction.UserId == userId)
+                    {
+                        _context.Update(transaction);
+                    }
+                }
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             PopulateCategories();
-            return View(transaction);
-        }
-
-        // GET: Transaction/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Transactions == null)
-            {
-                return NotFound();
-            }
-
-            var transaction = await _context.Transactions
-                .Include(t => t.Category)
-                .FirstOrDefaultAsync(m => m.TransactionId == id);
-            if (transaction == null)
-            {
-                return NotFound();
-            }
-
             return View(transaction);
         }
 
@@ -106,7 +109,7 @@ namespace ExpenseTracker.Controllers
                 return Problem("Entity set 'ApplicationDbContext.Transactions'  is null.");
             }
             var transaction = await _context.Transactions.FindAsync(id);
-            if (transaction != null)
+            if (transaction != null && transaction.UserId == this.GetCurrentUserId())
             {
                 _context.Transactions.Remove(transaction);
             }
@@ -127,6 +130,11 @@ namespace ExpenseTracker.Controllers
             //Category DefaultCategory = new Category() { CategoryId = 0, Title = "Choose a Category" };
             //CategoryCollection.Insert(0, DefaultCategory);
             ViewBag.Categories = CategoryCollection;
+        }
+
+        private Guid GetCurrentUserId()
+        {
+            return new Guid(_userManager.GetUserId(this.User));
         }
     }
 }
