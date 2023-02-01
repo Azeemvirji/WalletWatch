@@ -50,7 +50,8 @@ namespace ExpenseTracker.Controllers
             var total = new Category();
             total.Title = "Total";
             total.Icon = "=";
-            categories.Add(new CategoriesWithAmount(total, totalAmount));
+            if(totalAmount > 0)
+                categories.Add(new CategoriesWithAmount(total, totalAmount));
 
             return categories;
         }

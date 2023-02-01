@@ -17,10 +17,11 @@
     </div>
 </div>
 
-<ejs-grid id="transactions" dataSource="@Model" gridLines="None" allowSorting="true" allowPaging="true">
+<ejs-grid id="transactions" dataSource="@Model" gridLines="None" allowSorting="true" allowPaging="true" allowFiltering="true">
+    <e-grid-filterSettings type="Menu"></e-grid-filterSettings>
     <e-grid-columns>
-        <e-grid-column headerText="Category" field="Category.TitleWithIcon"></e-grid-column>
-        <e-grid-column headerText="Date" field="Date" type="date" format="MMM-dd-yyyy"></e-grid-column>
+        <e-grid-column headerText="Category" field="Category.TitleWithIcon" filter="@(new { type="CheckBox"})"></e-grid-column>
+        <e-grid-column headerText="Date" field="Date" type="date" format="MMM-dd-yyyy" filter="@(new {type="Excel"})"></e-grid-column>
         <e-grid-column headerText="Amount" field="Amount" type="number" format="c2"></e-grid-column>
         <e-grid-column headerText="Actions" template="#actionColumnTemplate"></e-grid-column>
     </e-grid-columns>
