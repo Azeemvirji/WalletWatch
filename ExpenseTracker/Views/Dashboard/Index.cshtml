@@ -1,20 +1,31 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    var Date = ViewData["Date"];
 }
-<h1>Income</h1>
+<div class="row mb-3">
+    <form asp-action="Index">
+        <div class="row">
+            <div class="col-md-2">
+                <ejs-datepicker id="date" ejs-for=@Date placeholder="Select Month" floatLabelType="Auto" format="MMM-yyyy"></ejs-datepicker>
+            </div>
+            <div class="col-md-2 mt-4">
+                <ejs-button id="submit" typeof="submit" content="Get Data" cssClass="e-success"></ejs-button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<h4>Income</h4>
 <ejs-grid id="income" dataSource="@Model.Item1" gridLines="None">
     <e-grid-columns>
         <e-grid-column headerText="Category" field="Category.TitleWithIcon"></e-grid-column>
-        <e-grid-column headerText="Amount" field="Amount"></e-grid-column>
+        <e-grid-column headerText="Amount" field="Amount" format="c2"></e-grid-column>
     </e-grid-columns>
 </ejs-grid>
 
-<h1>Expenses</h1>
+<h4>Expenses</h4>
 <ejs-grid id="expense" dataSource="@Model.Item2" gridLines="None">
     <e-grid-columns>
         <e-grid-column headerText="Category" field="Category.TitleWithIcon"></e-grid-column>
-        <e-grid-column headerText="Amount" field="Amount"></e-grid-column>
+        <e-grid-column headerText="Amount" field="Amount" format="c2"></e-grid-column>
     </e-grid-columns>
 </ejs-grid>

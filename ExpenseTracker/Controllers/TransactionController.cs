@@ -26,7 +26,7 @@ namespace ExpenseTracker.Controllers
         // GET: Transaction
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User))).Include(t => t.Category);
+            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User))).OrderByDescending(t => t.Date).Include(t => t.Category);
             return View(await applicationDbContext.ToListAsync());
         }
 

@@ -20,19 +20,41 @@ namespace ExpenseTracker.Controllers
 
         public async Task<IActionResult> Index()
         {
+            DateTime date = DateTime.Today;
+
+            DateTime startDate = GetMonthStartDate(date);
+            DateTime endDate = GetMonthEndDate(date);
+
+            ViewData["Date"] = startDate;
+
             //var applicationDbContext = _context.Transactions.Include(t => t.Category);
-            var income = this.SortTransactionsByCategories("Income");
-            var expense = this.SortTransactionsByCategories("Expense");
+            var income = this.SortTransactionsByCategories("Income", startDate, endDate);
+            var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
             var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
             return View(output);
         }
 
-        private List<CategoriesWithAmount> SortTransactionsByCategories(string type)
+        [HttpPost]
+        public async Task<IActionResult> Index(DateTime date)
+        {
+            DateTime startDate = GetMonthStartDate(date);
+            DateTime endDate = GetMonthEndDate(date);
+
+            ViewData["Date"] = startDate;
+
+            //var applicationDbContext = _context.Transactions.Include(t => t.Category);
+            var income = this.SortTransactionsByCategories("Income", startDate, endDate);
+            var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
+            var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
+            return View("Index", output);
+        }
+
+        private List<CategoriesWithAmount> SortTransactionsByCategories(string type, DateTime start, DateTime end)
         {
             var categories = new List<CategoriesWithAmount>();
             float totalAmount = 0;
 
-            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Category.Type == type).Include(t => t.Category);
+            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Category.Type == type && t.Date >= start && t.Date <= end).Include(t => t.Category);
 
             foreach(var x in applicationDbContext)
             {
@@ -54,6 +76,21 @@ namespace ExpenseTracker.Controllers
                 categories.Add(new CategoriesWithAmount(total, totalAmount));
 
             return categories;
+        }
+
+        private DateTime GetMonthStartDate(DateTime date)
+        {
+            var startDate = new DateTime(date.Year, date.Month, 1);
+
+            return startDate;
+        }
+
+        private DateTime GetMonthEndDate(DateTime date)
+        {
+            var startDate = new DateTime(date.Year, date.Month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            return endDate;
         }
     }
 
