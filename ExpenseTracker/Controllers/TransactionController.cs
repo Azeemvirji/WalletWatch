@@ -26,7 +26,40 @@ namespace ExpenseTracker.Controllers
         // GET: Transaction
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User))).OrderByDescending(t => t.Date).Include(t => t.Category);
+            DateTime date = DateTime.Today;
+
+            DateTime startDate = GetMonthStartDate(date);
+            DateTime endDate = GetMonthEndDate(date);
+
+            ViewData["startDate"] = startDate;
+            ViewData["endDate"] = endDate;
+
+            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
+            return View(await applicationDbContext.ToListAsync());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Index(DateTime startDate, DateTime endDate, string button)
+        {
+            DateTime date = DateTime.Today;
+
+            if (button == "This Week")
+            {
+                var start = DayOfWeek.Monday - date.DayOfWeek;
+                var end = start + 6;
+
+                startDate = date.AddDays(start);
+                endDate = date.AddDays(end);
+            }else if(button == "This Month")
+            {
+                startDate = GetMonthStartDate(date);
+                endDate = GetMonthEndDate(date);
+            }
+
+            ViewData["startDate"] = startDate;
+            ViewData["endDate"] = endDate;
+
+            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -135,6 +168,21 @@ namespace ExpenseTracker.Controllers
         private Guid GetCurrentUserId()
         {
             return new Guid(_userManager.GetUserId(this.User));
+        }
+
+        private DateTime GetMonthStartDate(DateTime date)
+        {
+            var startDate = new DateTime(date.Year, date.Month, 1);
+
+            return startDate;
+        }
+
+        private DateTime GetMonthEndDate(DateTime date)
+        {
+            var startDate = new DateTime(date.Year, date.Month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            return endDate;
         }
     }
 }

@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Transactions";
+
+    var startDate = ViewData["startDate"];
+    var endDate = ViewData["endDate"];
+    string button = "";
 }
 
 <div class="row">
@@ -15,6 +19,24 @@
             </a>
         </div>
     </div>
+</div>
+
+<div class="row mb-3">
+    <form asp-action="Index">
+        <div class="row">
+            <div class="col-md-4">
+                <ejs-datepicker id="startDate" ejs-for=@startDate placeholder="Start Date" floatLabelType="Auto" format="MMM-dd-yyyy"></ejs-datepicker>
+            </div>
+            <div class="col-md-4">
+                <ejs-datepicker id="endDate" ejs-for=@endDate placeholder="End Date" floatLabelType="Auto" format="MMM-dd-yyyy"></ejs-datepicker>
+            </div>
+            <div class="col-md-4 mt-3">
+                <input id="submit" class="btn btn-success" name="button" type="submit" value="Get Data"/>
+                <input id="week" class="btn btn-primary" name="button" type="submit" value="This Week"/>
+                <input id="month" class="btn btn-primary" name="button" type="submit" value="This Month" />
+            </div>
+        </div>
+    </form>
 </div>
 
 <ejs-grid id="transactions" dataSource="@Model" gridLines="None" allowSorting="true" allowPaging="true" allowFiltering="true">
