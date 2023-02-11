@@ -20,6 +20,11 @@
                 <input type="hidden" name="TransactionId" value="@Model.TransactionId">
                 <input type="hidden" name="UserId" value="@Model.UserId">
                 <div class="mb-3">
+                    <ejs-textbox id="name" placeholder="Name" ejs-for="Name"
+                                 floatLabelType="Auto"></ejs-textbox>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
                     <ejs-datepicker id="date" ejs-for="Date"
                                     placeholder="Date" floatLabelType="Auto"
                                     format="MMM-dd-yyyy"></ejs-datepicker>

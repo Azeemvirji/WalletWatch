@@ -9,6 +9,8 @@ namespace ExpenseTracker.Models
         [Key]
         public int TransactionId { get; set; }
         public Guid UserId { get; set; }
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; }
         [Range(1, int.MaxValue, ErrorMessage="Please select a category")]
         public int CategoryId { get; set; }
         public Category? Category { get; set; }

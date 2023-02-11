@@ -75,7 +75,7 @@ namespace ExpenseTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("TransactionId,UserId,CategoryId,Amount,Note,Date")] Transaction transaction)
+        public async Task<IActionResult> AddOrEdit([Bind("TransactionId,UserId,Name,CategoryId,Amount,Note,Date")] Transaction transaction)
         {
             var userId = this.GetCurrentUserId();
             if (ModelState.IsValid)
