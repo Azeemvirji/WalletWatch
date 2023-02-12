@@ -14,7 +14,6 @@ namespace ExpenseTracker.Models
         [Range(1, int.MaxValue, ErrorMessage="Please select a category")]
         public int CategoryId { get; set; }
         public Category? Category { get; set; }
-        [Range(0, float.MaxValue, ErrorMessage ="Amount must be greater than 0")]
         public float Amount { get; set; }
         [Column(TypeName = "nvarchar(75)")]
         public string? Note { get; set; }
