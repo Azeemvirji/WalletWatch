@@ -46,10 +46,9 @@ namespace ExpenseTracker.Controllers
             if (button == "This Week")
             {
                 var start = DayOfWeek.Monday - date.DayOfWeek;
-                var end = start + 6;
 
                 startDate = date.AddDays(start);
-                endDate = date.AddDays(end);
+                endDate = startDate.AddDays(6);
             }else if(button == "This Month")
             {
                 startDate = GetMonthStartDate(date);

@@ -1,0 +1,40 @@
+﻿@model IEnumerable<IdentityRole>
+
+@{
+    ViewBag.Title = "Roles";
+}
+
+<div class="row">
+    <div class="mb-2 d-flex">
+        <div class="flex-grow-1">
+            <h3 class="fw-bold">@ViewBag.Title</h3>
+        </div>
+        <div>
+            <a class="btn btn-success" asp-controller="administration" asp-action="CreateRole">
+                Create Role
+            </a>
+        </div>
+    </div>
+</div>
+
+<ejs-grid id="roles" dataSource="@Model" gridLines="None" allowSorting="true" allowPaging="true">
+    <e-grid-columns>
+        <e-grid-column headerText="Role" field="Name"></e-grid-column>
+        <e-grid-column headerText="Actions" template="#actionColumnTemplate"></e-grid-column>
+    </e-grid-columns>
+</ejs-grid>
+
+<script id="actionColumnTemplate" type="text/x-template">
+    <div class="d-flex flex-row justify-content-start">
+        <a class="btn btn-sm no-a-decoration" href="/Administration/EditRole/${Id}">
+            <i class="fa-solid fa-pen fa-lg"></i>
+        </a>
+        <form action="/Administration/Delete/${Id}" method="post">
+    @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-sm btn-link no-a-decoration"
+            onclick="return confirm(&quot;Fix this, also remove from transactions/category&quot;)">
+                <i class="fa-solid fa-trash-can fa-lg text-danger"></i>
+            </button>
+        </form>
+    </div>
+</script>

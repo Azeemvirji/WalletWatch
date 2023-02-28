@@ -1,0 +1,25 @@
+﻿@model UsersViewModel
+
+@{
+    ViewBag.Title = "Users";
+}
+
+<div class="row">
+    <div class="mb-2 d-flex">
+        <div class="flex-grow-1">
+            <h3 class="fw-bold">@ViewBag.Title</h3>
+        </div>
+        <div>
+            <a class="btn btn-primary" asp-controller="Administration" asp-action="Roles">
+                Roles
+            </a>
+        </div>
+    </div>
+</div>
+
+<ejs-grid id="roles" dataSource="@Model.users" gridLines="None" allowSorting="true" allowPaging="true">
+    <e-grid-columns>
+        <e-grid-column headerText="Email" field="Email"></e-grid-column>
+        <e-grid-column headerText="Role" field="Role"></e-grid-column>
+    </e-grid-columns>
+</ejs-grid>
