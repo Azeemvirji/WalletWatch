@@ -132,5 +132,22 @@ namespace ExpenseTracker.Controllers
 
             return View(model);
         }
+
+        [HttpGet]
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<JsonResult> IsEmailInUse([FromQuery(Name = "Input.Email")] string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return Json(true);
+            }
+            else
+            {
+                return Json($"Email {email} is in Use!");
+            }
+        }
     }
 }

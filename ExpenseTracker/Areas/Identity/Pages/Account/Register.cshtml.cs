@@ -77,6 +77,7 @@ namespace ExpenseTracker.Areas.Identity.Pages.Account
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
+            [Remote(action: "IsEmailInUse", controller: "Administration")]
             public string Email { get; set; }
 
             /// <summary>
@@ -98,7 +99,6 @@ namespace ExpenseTracker.Areas.Identity.Pages.Account
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
         }
-
 
         public async Task OnGetAsync(string returnUrl = null)
         {
