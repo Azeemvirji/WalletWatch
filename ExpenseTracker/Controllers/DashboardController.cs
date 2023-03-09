@@ -20,62 +20,85 @@ namespace ExpenseTracker.Controllers
 
         public async Task<IActionResult> Index()
         {
-            DateTime date = DateTime.Today;
+            try
+            {
+                DateTime date = DateTime.Today;
 
-            DateTime startDate = GetMonthStartDate(date);
-            DateTime endDate = GetMonthEndDate(date);
+                DateTime startDate = GetMonthStartDate(date);
+                DateTime endDate = GetMonthEndDate(date);
 
-            ViewData["Date"] = startDate;
+                ViewData["Date"] = startDate;
 
-            //var applicationDbContext = _context.Transactions.Include(t => t.Category);
-            var income = this.SortTransactionsByCategories("Income", startDate, endDate);
-            var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
-            var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
-            return View(output);
+                //var applicationDbContext = _context.Transactions.Include(t => t.Category);
+                var income = this.SortTransactionsByCategories("Income", startDate, endDate);
+                var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
+                var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
+                return View(output);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error");
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Index(DateTime date)
         {
-            DateTime startDate = GetMonthStartDate(date);
-            DateTime endDate = GetMonthEndDate(date);
+            try
+            {
+                DateTime startDate = GetMonthStartDate(date);
+                DateTime endDate = GetMonthEndDate(date);
 
-            ViewData["Date"] = startDate;
+                ViewData["Date"] = startDate;
 
-            //var applicationDbContext = _context.Transactions.Include(t => t.Category);
-            var income = this.SortTransactionsByCategories("Income", startDate, endDate);
-            var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
-            var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
-            return View("Index", output);
+                //var applicationDbContext = _context.Transactions.Include(t => t.Category);
+                var income = this.SortTransactionsByCategories("Income", startDate, endDate);
+                var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
+                var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
+                return View("Index", output);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error");
+            }
         }
 
         private List<CategoriesWithAmount> SortTransactionsByCategories(string type, DateTime start, DateTime end)
         {
-            var categories = new List<CategoriesWithAmount>();
-            float totalAmount = 0;
-
-            var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Category.Type == type && t.Date >= start && t.Date <= end).Include(t => t.Category);
-
-            foreach(var x in applicationDbContext)
+            try
             {
-                totalAmount += x.Amount;
-                if(!categories.Exists(c => c.Category.CategoryId == x.CategoryId))
+                var categories = new List<CategoriesWithAmount>();
+                float totalAmount = 0;
+
+                var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Category.Type == type && t.Date >= start && t.Date <= end).Include(t => t.Category);
+
+                foreach (var x in applicationDbContext)
                 {
-                    categories.Add(new CategoriesWithAmount(x.Category, x.Amount));
+                    totalAmount += x.Amount;
+                    if (!categories.Exists(c => c.Category.CategoryId == x.CategoryId))
+                    {
+                        categories.Add(new CategoriesWithAmount(x.Category, x.Amount));
+                    }
+                    else
+                    {
+                        categories.Find(c => c.Category.CategoryId == x.CategoryId).AddAmount(x.Amount);
+                    }
                 }
-                else
-                {
-                    categories.Find(c => c.Category.CategoryId == x.CategoryId).AddAmount(x.Amount);
-                }
+
+                var total = new Category();
+                total.Title = "Total";
+                total.Icon = "=";
+                if (totalAmount > 0)
+                    categories.Add(new CategoriesWithAmount(total, totalAmount));
+
+                return categories;
+            }
+            catch (Exception ex)
+            {
+                RedirectToRoute("Error");
             }
 
-            var total = new Category();
-            total.Title = "Total";
-            total.Icon = "=";
-            if(totalAmount > 0)
-                categories.Add(new CategoriesWithAmount(total, totalAmount));
-
-            return categories;
+            return new List<CategoriesWithAmount>();
         }
 
         private DateTime GetMonthStartDate(DateTime date)

@@ -22,82 +22,132 @@ namespace ExpenseTracker.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var users = _userManager.Users.ToList();
-
-            var model = new UsersViewModel();
-
-            var usersList = new List<Users>();
-
-            foreach(var user in users)
+            try
             {
-                var admin = _userManager.IsInRoleAsync(user, "Admin");
+                var users = _userManager.Users.ToList();
 
-                usersList.Add(new Users
+                var model = new UsersViewModel();
+
+                var usersList = new List<Users>();
+
+                foreach (var user in users)
                 {
-                    Id = user.Id,
-                    Email = user.Email,
-                    Role = admin.Result ? "Admin" : "User"
-                });
+                    var admin = _userManager.IsInRoleAsync(user, "Admin");
+
+                    usersList.Add(new Users
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        Role = admin.Result ? "Admin" : "User" // If not admin then give user role
+                    });
+                }
+
+                model.users = usersList;
+
+                return View(model);
             }
+            catch(Exception ex)
+            {
+                return RedirectToRoute("Error");
+            }
+        }
 
-            model.users = usersList;
+        [HttpPost, ActionName("MakeAdmin")]
+        public async Task<IActionResult> MakeAdmin(string Id)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(Id);
 
-            return View(model);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _userManager.AddToRoleAsync(user, "Admin");
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error");
+            }
         }
 
         [HttpGet]
         public IActionResult Roles()
         {
-            var roles = _roleManager.Roles.ToList();
-            return View(roles);
+            try
+            {
+                var roles = _roleManager.Roles.ToList();
+                return View(roles);
+            }
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error");
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> EditRole(string id)
         {
-            var role = await _roleManager.FindByIdAsync(id);
-
-            if (role == null)
+            try
             {
-                ViewBag.ErrorMessage = $"Role with Id = {id} cannot be found";
-                return NotFound();
+                var role = await _roleManager.FindByIdAsync(id);
+
+                if (role == null)
+                {
+                    ViewBag.ErrorMessage = $"Role with Id = {id} cannot be found";
+                    return NotFound();
+                }
+
+                var model = new EditRoleViewModel
+                {
+                    Id = role.Id,
+                    RoleName = role.Name
+                };
+
+                return View(model);
             }
-
-            var model = new EditRoleViewModel
+            catch (Exception ex)
             {
-                Id = role.Id,
-                RoleName = role.Name
-            };
-
-            return View(model);
+                return RedirectToRoute("Error");
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> EditRole(EditRoleViewModel model)
         {
-            var role = await _roleManager.FindByIdAsync(model.Id);
-
-            if (role == null)
+            try
             {
-                ViewBag.ErrorMessage = $"Role with Id = {model.Id} cannot be found";
-                return NotFound();
+                var role = await _roleManager.FindByIdAsync(model.Id);
+
+                if (role == null)
+                {
+                    ViewBag.ErrorMessage = $"Role with Id = {model.Id} cannot be found";
+                    return NotFound();
+                }
+                else
+                {
+                    role.Name = model.RoleName;
+                    var result = await _roleManager.UpdateAsync(role);
+
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("Roles");
+                    }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+
+                    return View(model);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                role.Name = model.RoleName;
-                var result = await _roleManager.UpdateAsync(role);
-
-                if (result.Succeeded)
-                {
-                    return RedirectToAction("Roles");
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
-
-                return View(model);
+                return RedirectToRoute("Error");
             }
         }
 
@@ -110,27 +160,34 @@ namespace ExpenseTracker.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                IdentityRole identityRole = new IdentityRole
+                if (ModelState.IsValid)
                 {
-                    Name = model.RoleName
-                };
+                    IdentityRole identityRole = new IdentityRole
+                    {
+                        Name = model.RoleName
+                    };
 
-                IdentityResult result = await _roleManager.CreateAsync(identityRole);
+                    IdentityResult result = await _roleManager.CreateAsync(identityRole);
 
-                if (result.Succeeded)
-                {
-                    return RedirectToAction("Roles", "Administration");
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("Roles", "Administration");
+                    }
+
+                    foreach (IdentityError error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
                 }
 
-                foreach (IdentityError error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
+                return View(model);
             }
-
-            return View(model);
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error");
+            }
         }
 
         [HttpGet]
