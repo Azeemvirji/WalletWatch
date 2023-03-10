@@ -14,6 +14,10 @@ html {
     font-family: "Inter";
 }
 
+.hidden{
+    display: none;
+}
+
 *:not(.fa-solid):not(.fa):not(.e-icons) {
     font-family: "Inter"
 }

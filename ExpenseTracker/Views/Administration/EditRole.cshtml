@@ -24,3 +24,9 @@
         </div>
     </form>
 </div>
+
+<ejs-grid id="roles" dataSource="@Model.Users" gridLines="None" allowSorting="true" allowPaging="true">
+    <e-grid-columns>
+        <e-grid-column headerText="Email" field="Email"></e-grid-column>
+    </e-grid-columns>
+</ejs-grid>

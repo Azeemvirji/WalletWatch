@@ -44,10 +44,20 @@
         </a>
         <form action="/Category/Delete/${CategoryId}" method="post">
     @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-sm btn-link no-a-decoration"
-            onclick="return confirm(&quot;Remove thisAre sure you want to delete this record?&quot;)">
-                <i class="fa-solid fa-trash-can fa-lg text-danger"></i>
-            </button>
+            <div id="deleteBtn_${CategoryId}">
+                <a class="btn btn-sm btn-link no-a-decoration" onclick="confirmDelete(this.id ,true)" id="${CategoryId}">
+                    <i class="fa-solid fa-trash-can fa-lg text-danger"></i>
+                </a>
+            </div>
+            <div class="hidden" id="confirmDeleteBtn_${CategoryId}">
+                <span>Are you sure you want to delete? </span>
+                <button class="btn btn-danger" type="submit">Yes</button>
+                <a id="${CategoryId}" class="btn btn-primary" onclick="confirmDelete(this.id, false)">No</a>
+            </div>
         </form>
     </div>
 </script>
+
+@section Scripts{
+    <script src="~/js/deletescript.js"></script>
+}

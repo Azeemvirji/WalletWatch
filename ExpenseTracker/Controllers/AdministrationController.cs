@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTracker.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class AdministrationController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -73,6 +73,28 @@ namespace ExpenseTracker.Controllers
                 return RedirectToRoute("Error");
             }
         }
+        
+        [HttpPost, ActionName("RemoveAdmin")]
+        public async Task<IActionResult> RemoveAdmin(string Id)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(Id);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                var result = await _userManager.RemoveFromRoleAsync(user, "Admin");
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                return RedirectToRoute("Error");
+            }
+        }
 
         [HttpGet]
         public IActionResult Roles()
@@ -101,10 +123,23 @@ namespace ExpenseTracker.Controllers
                     return NotFound();
                 }
 
+                var users = await _userManager.GetUsersInRoleAsync(role.Name);
+
+                var usersList = new List<Users>();
+
+                foreach (var user in users)
+                {
+                    usersList.Add(new Users
+                    {
+                        Email = user.Email
+                    });
+                }
+
                 var model = new EditRoleViewModel
                 {
                     Id = role.Id,
-                    RoleName = role.Name
+                    RoleName = role.Name,
+                    Users = usersList
                 };
 
                 return View(model);
@@ -187,6 +222,42 @@ namespace ExpenseTracker.Controllers
             catch (Exception ex)
             {
                 return RedirectToRoute("Error");
+            }
+        }
+
+        [HttpPost, ActionName("DeleteRole")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRole(string id)
+        {
+            var role = await _roleManager.FindByIdAsync(id);
+
+            if (role == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var users = await _userManager.GetUsersInRoleAsync(role.Name);
+
+                if (users.Count == 0)
+                {
+                    var result = await _roleManager.DeleteAsync(role);
+
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("Roles", "Administration");
+                    }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                }
+                else {
+                    ModelState.AddModelError("", "Role has Users, Please remove users from role and try again!");
+                }
+
+                return RedirectToAction("Roles", "Administration");
             }
         }
 
