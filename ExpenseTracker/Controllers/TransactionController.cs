@@ -201,11 +201,27 @@ namespace ExpenseTracker.Controllers
         [NonAction]
         public void PopulateCategories()
         {
-            var userId = GetCurrentUserId();
-            var CategoryCollection = _context.Categories.Where(c => c.UserId == userId).ToList();
+            var userId = this.GetCurrentUserId();
+            var isAdmin = this.userIsAdmin().Result;
+
+            if (isAdmin)
+            {
+                ViewBag.Categories = _context.Categories.Where(c => c.UserId == userId || c.UserId == Guid.Empty).ToList();
+            }
+            else
+            {
+                ViewBag.Categories = _context.Categories.Where(c => c.UserId == userId).ToList();
+            }
+
             //Category DefaultCategory = new Category() { CategoryId = 0, Title = "Choose a Category" };
             //CategoryCollection.Insert(0, DefaultCategory);
-            ViewBag.Categories = CategoryCollection;
+            //ViewBag.Categories = CategoryCollection;
+        }
+
+        public async Task<bool> userIsAdmin()
+        {
+            var user = await _userManager.GetUserAsync(this.User);
+            return await _userManager.IsInRoleAsync(user, "Admin");
         }
 
         private Guid GetCurrentUserId()
