@@ -7,25 +7,40 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace ExpenseTracker.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class CategoryController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public CategoryController(ApplicationDbContext context)
+        public CategoryController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Category
         public async Task<IActionResult> Index()
         {
-              return _context.Categories != null ? 
-                          View(await _context.Categories.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
+            var user = await _userManager.GetUserAsync(this.User);
+            var userId = this.GetCurrentUserId();
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            if (isAdmin)
+            {
+                return _context.Categories != null ?
+                              View(await _context.Categories.Where(c => c.UserId == userId || c.UserId == Guid.Empty).OrderByDescending(c => c.UserId).ToListAsync()) :
+                              Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
+            }
+            else
+            {
+                return _context.Categories != null ?
+                              View(await _context.Categories.Where(c => c.UserId == userId).OrderByDescending(c => c.UserId).ToListAsync()) :
+                              Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
+            }
         }
 
         // GET: Category/Details/5
@@ -78,19 +93,34 @@ namespace ExpenseTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("CategoryId,Title,Icon,Type")] Category category)
+        public async Task<IActionResult> AddOrEdit([Bind("CategoryId,UserId,Title,Icon,Type")] Category category)
         {
             try
             {
+                var user = await _userManager.GetUserAsync(this.User);
+                var userId = this.GetCurrentUserId();
+                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
                 if (ModelState.IsValid)
                 {
                     if (category.CategoryId == 0)
                     {
+                        //if (isAdmin)
+                        //{
+                        //    category.UserId = Guid.Empty;
+                        //}
+                        //else
+                        //{
+                        category.UserId = userId;
+                        //}
+
                         _context.Add(category);
                     }
                     else
                     {
-                        _context.Update(category);
+                        if(category.UserId == userId || isAdmin)
+                        {
+                            _context.Update(category);
+                        }
                     }
 
                     await _context.SaveChangesAsync();
@@ -136,12 +166,15 @@ namespace ExpenseTracker.Controllers
         {
             try
             {
+                var user = await _userManager.GetUserAsync(this.User);
+                var userId = this.GetCurrentUserId();
+                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
                 if (_context.Categories == null)
                 {
                     return Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
                 }
                 var category = await _context.Categories.FindAsync(id);
-                if (category != null)
+                if (category != null && (category.UserId == userId || isAdmin))
                 {
                     _context.Categories.Remove(category);
                 }
@@ -158,6 +191,11 @@ namespace ExpenseTracker.Controllers
         private bool CategoryExists(int id)
         {
           return (_context.Categories?.Any(e => e.CategoryId == id)).GetValueOrDefault();
+        }
+
+        private Guid GetCurrentUserId()
+        {
+            return new Guid(_userManager.GetUserId(this.User));
         }
     }
 }

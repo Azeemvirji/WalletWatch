@@ -68,7 +68,7 @@ namespace ExpenseTracker.Controllers
                 ViewData["startDate"] = startDate;
                 ViewData["endDate"] = endDate;
 
-                var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
+                var applicationDbContext = _context.Transactions.Where(t => t.UserId == this.GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
                 return View(await applicationDbContext.ToListAsync());
             }
             catch (Exception ex)
