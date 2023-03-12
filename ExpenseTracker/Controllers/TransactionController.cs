@@ -201,7 +201,8 @@ namespace ExpenseTracker.Controllers
         [NonAction]
         public void PopulateCategories()
         {
-            var CategoryCollection = _context.Categories.ToList();
+            var userId = GetCurrentUserId();
+            var CategoryCollection = _context.Categories.Where(c => c.UserId == userId).ToList();
             //Category DefaultCategory = new Category() { CategoryId = 0, Title = "Choose a Category" };
             //CategoryCollection.Insert(0, DefaultCategory);
             ViewBag.Categories = CategoryCollection;

@@ -15,6 +15,20 @@
 <div class="row">
     <div class="col-md-5">
         <div class="widget p-5">
+            @if (Model.CategoryId != 0)
+            {
+                <form action="/Transaction/Delete/@Model.TransactionId" method="post">
+                    @Html.AntiForgeryToken()
+                    <div id="deleteBtn_@Model.TransactionId">
+                        <a class="btn btn-danger" id="@Model.TransactionId" onclick="confirmDelete(this.id, true)">Delete</a>
+                    </div>
+                    <div class="hidden" id="confirmDeleteBtn_@Model.TransactionId">
+                        <span>Are you sure you want to delete?</span>
+                        <button type="submit" class="btn btn-danger">Yes</button>
+                        <a id="@Model.TransactionId" class="btn btn-primary" onclick="confirmDelete(this.id, false)">No</a>
+                    </div>
+                </form>
+            }
             <form asp-action="AddOrEdit">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <input type="hidden" name="TransactionId" value="@Model.TransactionId">
@@ -49,9 +63,8 @@
                     <ejs-textbox id="note" placeholder="Note" ejs-for="Note"
                                  floatLabelType="Auto" multiline="true"></ejs-textbox>
                 </div>
-
                 <div class="mb-3">
-                    <ejs-button id="submit" typeof="submit" content="Submit" cssClass="e-success"></ejs-button>
+                    <ejs-button id="submit" typeof="submit" content="Submit" cssClass="e-success p-2"></ejs-button>
                 </div>
             </form>
         </div>
@@ -60,4 +73,5 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/deletescript.js"></script>
 }
