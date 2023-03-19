@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace ExpenseTracker.Controllers
 {
@@ -24,16 +25,14 @@ namespace ExpenseTracker.Controllers
             {
                 DateTime date = DateTime.Today;
 
-                DateTime startDate = GetMonthStartDate(date);
-                DateTime endDate = GetMonthEndDate(date);
+                DateTime StartDate = GetMonthStartDate(date);
+                DateTime EndDate = GetMonthEndDate(date);
 
-                ViewData["Date"] = startDate;
+                ViewData["Date"] = StartDate;
 
-                //var applicationDbContext = _context.Transactions.Include(t => t.Category);
-                var income = this.SortTransactionsByCategories("Income", startDate, endDate);
-                var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
-                var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
-                return View(output);
+                await PrepareDateForView(StartDate, EndDate);
+
+                return View();
             }
             catch (Exception ex)
             {
@@ -46,16 +45,14 @@ namespace ExpenseTracker.Controllers
         {
             try
             {
-                DateTime startDate = GetMonthStartDate(date);
-                DateTime endDate = GetMonthEndDate(date);
+                DateTime StartDate = GetMonthStartDate(date);
+                DateTime EndDate = GetMonthEndDate(date);
 
-                ViewData["Date"] = startDate;
+                ViewData["Date"] = StartDate;
 
-                //var applicationDbContext = _context.Transactions.Include(t => t.Category);
-                var income = this.SortTransactionsByCategories("Income", startDate, endDate);
-                var expense = this.SortTransactionsByCategories("Expense", startDate, endDate);
-                var output = new Tuple<List<CategoriesWithAmount>, List<CategoriesWithAmount>>(income, expense);
-                return View("Index", output);
+                await PrepareDateForView(StartDate, EndDate);
+
+                return View();
             }
             catch (Exception ex)
             {
@@ -63,42 +60,56 @@ namespace ExpenseTracker.Controllers
             }
         }
 
-        private List<CategoriesWithAmount> SortTransactionsByCategories(string type, DateTime start, DateTime end)
+        public async Task PrepareDateForView(DateTime start, DateTime end)
         {
-            try
-            {
-                var categories = new List<CategoriesWithAmount>();
-                float totalAmount = 0;
+            List<Transaction> SelectedTransactions = await _context.Transactions
+                .Include(x => x.Category)
+                .Where(y => y.Date >= start && y.Date <= end)
+                .ToListAsync();
 
-                var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Category.Type == type && t.Date >= start && t.Date <= end).Include(t => t.Category);
+            //Total Income
+            float TotalIncome = SelectedTransactions
+                .Where(i => i.Category.Type == "Income")
+                .Sum(j => j.Amount);
+            ViewBag.TotalIncome = TotalIncome.ToString("C2");
 
-                foreach (var x in applicationDbContext)
+            //Total Expense
+            float TotalExpense = SelectedTransactions
+                .Where(i => i.Category.Type == "Expense")
+                .Sum(j => j.Amount);
+            ViewBag.TotalExpense = TotalExpense.ToString("C2");
+
+            //Balance
+            float Balance = TotalIncome - TotalExpense;
+            //CultureInfo culture = CultureInfo.CreateSpecificCulture("en-US");
+            //culture.NumberFormat.CurrencyNegativePattern = 1;
+            //ViewBag.Balance = String.Format(culture, "{0:C2}", Balance);
+            ViewBag.Balance = Balance.ToString("C2");
+
+            //Doughnut Chart - Expense By Category
+            ViewBag.Expenses = SelectedTransactions
+                .Where(i => i.Category.Type == "Expense")
+                .GroupBy(j => j.Category.CategoryId)
+                .Select(k => new
                 {
-                    totalAmount += x.Amount;
-                    if (!categories.Exists(c => c.Category.CategoryId == x.CategoryId))
-                    {
-                        categories.Add(new CategoriesWithAmount(x.Category, x.Amount));
-                    }
-                    else
-                    {
-                        categories.Find(c => c.Category.CategoryId == x.CategoryId).AddAmount(x.Amount);
-                    }
-                }
+                    categoryTitleWithIcon = k.First().Category.TitleWithIcon,
+                    amount = k.Sum(j => j.Amount),
+                    formattedAmount = k.Sum(j => j.Amount).ToString("C2"),
+                })
+                .OrderByDescending(l => l.amount)
+                .ToList();
 
-                var total = new Category();
-                total.Title = "Total";
-                total.Icon = "=";
-                if (totalAmount > 0)
-                    categories.Add(new CategoriesWithAmount(total, totalAmount));
-
-                return categories;
-            }
-            catch (Exception ex)
-            {
-                RedirectToRoute("Error");
-            }
-
-            return new List<CategoriesWithAmount>();
+            ViewBag.Income = SelectedTransactions
+                .Where(i => i.Category.Type == "Income")
+                .GroupBy(j => j.Category.CategoryId)
+                .Select(k => new
+                {
+                    categoryTitleWithIcon = k.First().Category.TitleWithIcon,
+                    amount = k.Sum(j => j.Amount),
+                    formattedAmount = k.Sum(j => j.Amount).ToString("C2"),
+                })
+                .OrderByDescending(l => l.amount)
+                .ToList();
         }
 
         private DateTime GetMonthStartDate(DateTime date)
@@ -114,24 +125,6 @@ namespace ExpenseTracker.Controllers
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
             return endDate;
-        }
-    }
-
-    public class CategoriesWithAmount
-    {
-        public Category Category { get; set; }
-        public float Amount { get; set; }
-
-        public CategoriesWithAmount() { }
-
-        public CategoriesWithAmount(Category category, float amount) {
-            Category = category;
-            Amount = amount;
-        }
-
-        public void AddAmount(float amount)
-        {
-            Amount += amount;
         }
     }
 }

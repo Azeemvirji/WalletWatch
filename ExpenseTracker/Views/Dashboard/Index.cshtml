@@ -1,6 +1,8 @@
 ﻿@{
+    ViewData["isDashboard"] = true;
     var Date = ViewData["Date"];
 }
+
 <div class="row mb-3">
     <form asp-action="Index">
         <div class="row">
@@ -14,18 +16,83 @@
     </form>
 </div>
 
-<h4>Income</h4>
-<ejs-grid id="income" dataSource="@Model.Item1" gridLines="None">
-    <e-grid-columns>
-        <e-grid-column headerText="Category" field="Category.TitleWithIcon"></e-grid-column>
-        <e-grid-column headerText="Amount" field="Amount" format="c2"></e-grid-column>
-    </e-grid-columns>
-</ejs-grid>
+@*Summary Widgets*@
+<div class="row mb-4">
 
-<h4>Expenses</h4>
-<ejs-grid id="expense" dataSource="@Model.Item2" gridLines="None">
-    <e-grid-columns>
-        <e-grid-column headerText="Category" field="Category.TitleWithIcon"></e-grid-column>
-        <e-grid-column headerText="Amount" field="Amount" format="c2"></e-grid-column>
-    </e-grid-columns>
-</ejs-grid>
+    <div class="col-md-4">
+        <div class="d-flex flex-row widget summary income">
+            <div class="d-flex flex-column justify-content-center p-5">
+                <i class="fa-solid fa-dollar-sign fa-2xl"></i>
+            </div>
+            <div class="d-flex flex-column m-auto py-3">
+                <span class="lead">Total Income</span>
+                <h1 class="display-6 fw-bold">@ViewBag.TotalIncome</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="d-flex flex-row widget summary expense">
+            <div class="d-flex flex-column justify-content-center p-5">
+                <i class="fa-solid fa-dollar-sign fa-2xl"></i>
+            </div>
+            <div class="d-flex flex-column m-auto py-3">
+                <span class="lead">Total Expense</span>
+                <h1 class="display-6 fw-bold">@ViewBag.TotalExpense</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="d-flex flex-row widget summary balance">
+            <div class="d-flex flex-column justify-content-center p-5">
+                <i class="fa-solid fa-dollar-sign fa-2xl"></i>
+            </div>
+            <div class="d-flex flex-column m-auto py-3">
+                <span class="lead">Remaining Balance</span>
+                <h1 class="display-6 fw-bold">@ViewBag.Balance</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*Doughnut and Spline Chart*@
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="widget chart">
+            <div class="p-4">
+                <h5 class="fw-bold">Expense By Category</h5>
+            </div>
+            <ejs-accumulationchart id="doughnutchart" enableSmartLabels background="#1a222b">
+                <e-accumulation-series-collection>
+                    <e-accumulation-series dataSource="@ViewBag.Expenses"
+                                           xName="categoryTitleWithIcon" yName="amount"
+                                           innerRadius="60%" legendShape="Circle"
+                                           palettes=@(new string[]{"#0e8d76","#a4b219","#cb9b00","#8a442c","#0454b5","#7d0a0a","#822690","#4c2090","#313e93","#0096ac"})>
+                        <e-accumulationseries-datalabel name="formattedAmount" visible></e-accumulationseries-datalabel>
+                    </e-accumulation-series>
+                </e-accumulation-series-collection>
+                <e-accumulationchart-legendsettings position="Top" toggleVisibility="false">
+                    <e-legendsettings-textstyle color="#fff" size="1rem"></e-legendsettings-textstyle>
+                </e-accumulationchart-legendsettings>
+                <e-accumulationchart-tooltipsettings enable></e-accumulationchart-tooltipsettings>
+            </ejs-accumulationchart>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <h4>Income</h4>
+        <ejs-grid id="income" dataSource="@ViewBag.Income" gridLines="None">
+            <e-grid-columns>
+                <e-grid-column headerText="Category" field="categoryTitleWithIcon"></e-grid-column>
+                <e-grid-column headerText="Amount" field="formattedAmount" format="c2"></e-grid-column>
+            </e-grid-columns>
+        </ejs-grid>
+        <h4>Expenses</h4>
+        <ejs-grid id="expenses" dataSource="@ViewBag.Expenses" gridLines="None">
+            <e-grid-columns>
+                <e-grid-column headerText="Category" field="categoryTitleWithIcon"></e-grid-column>
+                <e-grid-column headerText="Amount" field="formattedAmount" format="c2"></e-grid-column>
+            </e-grid-columns>
+        </ejs-grid>
+    </div>
+</div>
