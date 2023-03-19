@@ -93,8 +93,8 @@ namespace ExpenseTracker.Controllers
                 .Select(k => new
                 {
                     categoryTitleWithIcon = k.First().Category.TitleWithIcon,
-                    amount = k.Sum(j => j.Amount),
-                    formattedAmount = k.Sum(j => j.Amount).ToString("C2"),
+                    amount = Math.Round(k.Sum(j => j.Amount),2),
+                    formattedAmount = k.Sum(j => j.Amount).ToString("C2")
                 })
                 .OrderByDescending(l => l.amount)
                 .ToList();

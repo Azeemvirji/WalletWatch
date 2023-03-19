@@ -81,14 +81,16 @@
     </div>
     <div class="col-md-8">
         <h4>Income</h4>
-        <ejs-grid id="income" dataSource="@ViewBag.Income" gridLines="None">
+        <ejs-grid id="income" dataSource="@ViewBag.Income" gridLines="None" allowPaging="true">
+            <e-grid-pagesettings pageSize="2"></e-grid-pagesettings>
             <e-grid-columns>
                 <e-grid-column headerText="Category" field="categoryTitleWithIcon"></e-grid-column>
                 <e-grid-column headerText="Amount" field="formattedAmount" format="c2"></e-grid-column>
             </e-grid-columns>
         </ejs-grid>
         <h4>Expenses</h4>
-        <ejs-grid id="expenses" dataSource="@ViewBag.Expenses" gridLines="None">
+        <ejs-grid id="expenses" dataSource="@ViewBag.Expenses" gridLines="None" allowPaging="true">
+            <e-grid-pagesettings pageSize="5"></e-grid-pagesettings>
             <e-grid-columns>
                 <e-grid-column headerText="Category" field="categoryTitleWithIcon"></e-grid-column>
                 <e-grid-column headerText="Amount" field="formattedAmount" format="c2"></e-grid-column>
