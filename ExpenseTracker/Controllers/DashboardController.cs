@@ -64,7 +64,7 @@ namespace ExpenseTracker.Controllers
         {
             List<Transaction> SelectedTransactions = await _context.Transactions
                 .Include(x => x.Category)
-                .Where(y => y.Date >= start && y.Date <= end)
+                .Where(y => y.UserId == new Guid(_userManager.GetUserId(this.User)) && y.Date >= start && y.Date <= end)
                 .ToListAsync();
 
             //Total Income
