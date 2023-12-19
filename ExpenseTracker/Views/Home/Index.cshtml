@@ -1,12 +1,13 @@
 ﻿@inject SignInManager<IdentityUser> SignInManager
 @{
     ViewData["Title"] = "Home Page";
+    ViewData["ProjectName"] = "Wallet Watch";
 }
 
 <div class="">
     <h1 class="display-4 text-center">Welcome</h1>
     <p>
-        Welcome to Budget Buddy, your ultimate tool for tracking your expenses and taking control of your finances! Our website is designed to make managing your money easy, hassle-free, and even fun. Whether you're trying to save for a big purchase, pay off debt, or simply gain a better understanding of your spending habits, Budget Buddy is here to help.
+        Welcome to @ViewData["ProjectName"], your ultimate tool for tracking your expenses and taking control of your finances! Our website is designed to make managing your money easy, hassle-free, and even fun. Whether you're trying to save for a big purchase, pay off debt, or simply gain a better understanding of your spending habits, Budget Buddy is here to help.
         <br />
         <br />
         With our simple and intuitive interface, you can easily track your expenses, set budgets, and monitor your progress towards your financial goals. Our website provides detailed insights into your spending habits, allowing you to identify areas where you can save money and make more informed financial decisions.

@@ -52,6 +52,30 @@ namespace ExpenseTracker.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> DeleteUser(string Id)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(Id);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    var result = _userManager.DeleteAsync(user);
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction("Error");
+            }
+        }
+
         [HttpPost, ActionName("MakeAdmin")]
         public async Task<IActionResult> MakeAdmin(string Id)
         {

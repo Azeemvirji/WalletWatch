@@ -36,5 +36,23 @@
         <form action="/Administration/RemoveAdmin/${Id}" method="post">
             <button type="submit" class="btn btn-sm no-a-decoration" title="Remove Admin Role"><i class="fa-solid fa-circle-xmark"></i></button>
         </form>
+
+                <form action="/Administration/DeleteUser/${Id}" method="post">
+    @Html.AntiForgeryToken()
+            <div id="deleteBtn_${Id}">
+                <a class="btn btn-sm btn-link no-a-decoration" onclick="confirmDelete(this.id ,true)" id="${Id}">
+                    <i class="fa-solid fa-trash-can fa-lg text-danger"></i>
+                </a>
+            </div>
+            <div class="hidden" id="confirmDeleteBtn_${Id}">
+                <span>Are you sure you want to delete? </span>
+                <button class="btn btn-danger" type="submit">Yes</button>
+                <a id="${Id}" class="btn btn-primary" onclick="confirmDelete(this.id, false)">No</a>
+            </div>
+        </form>
     </div>
 </script>
+
+@section Scripts{
+    <script src="~/js/deletescript.js"></script>
+}
