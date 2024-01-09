@@ -8,5 +8,6 @@ namespace ExpenseTracker.Models
         public string Id { get; set; }
         public string Email { get; set; }
         public string Role { get; set; }
+        public string LastLoggedIn { get; set; }
     }
 }

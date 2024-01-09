@@ -10,10 +10,10 @@ namespace ExpenseTracker.Controllers
     public class AdministrationController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public AdministrationController(RoleManager<IdentityRole> roleManager, 
-            UserManager<IdentityUser> userManager) 
+            UserManager<ApplicationUser> userManager) 
         { 
             _roleManager = roleManager;
             _userManager = userManager;
@@ -38,6 +38,7 @@ namespace ExpenseTracker.Controllers
                     {
                         Id = user.Id,
                         Email = user.Email,
+                        LastLoggedIn = user.LastLoggedIn.ToLongDateString(),
                         Role = admin.Result ? "Admin" : "User" // If not admin then give user role
                     });
                 }

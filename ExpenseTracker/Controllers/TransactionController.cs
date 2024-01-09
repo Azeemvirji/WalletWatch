@@ -15,9 +15,9 @@ namespace ExpenseTracker.Controllers
     public class TransactionController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TransactionController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public TransactionController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
