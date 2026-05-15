@@ -42,14 +42,14 @@ namespace ExpenseTracker.Controllers
         {
             DateTime date = DateTime.Today;
 
-            if (button == "This Week")
+            if (button == DashboardFilter.ThisWeek)
             {
                 var start = DayOfWeek.Monday - date.DayOfWeek;
 
                 startDate = date.AddDays(start);
                 endDate = startDate.AddDays(6);
             }
-            else if (button == "This Month")
+            else if (button == DashboardFilter.ThisMonth)
             {
                 startDate = GetMonthStartDate(date);
                 endDate = GetMonthEndDate(date);

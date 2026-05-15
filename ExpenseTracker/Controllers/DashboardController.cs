@@ -54,13 +54,13 @@ namespace ExpenseTracker.Controllers
 
             //Total Income
             float TotalIncome = SelectedTransactions
-                .Where(i => i.Category.Type == "Income")
+                .Where(i => i.Category.Type == CategoryType.Income)
                 .Sum(j => j.Amount);
             ViewBag.TotalIncome = TotalIncome.ToString("C2");
 
             //Total Expense
             float TotalExpense = SelectedTransactions
-                .Where(i => i.Category.Type == "Expense")
+                .Where(i => i.Category.Type == CategoryType.Expense)
                 .Sum(j => j.Amount);
             ViewBag.TotalExpense = TotalExpense.ToString("C2");
 
@@ -73,7 +73,7 @@ namespace ExpenseTracker.Controllers
 
             //Doughnut Chart - Expense By Category
             ViewBag.Expenses = SelectedTransactions
-                .Where(i => i.Category.Type == "Expense")
+                .Where(i => i.Category.Type == CategoryType.Expense)
                 .GroupBy(j => j.Category.CategoryId)
                 .Select(k => new
                 {
@@ -85,7 +85,7 @@ namespace ExpenseTracker.Controllers
                 .ToList();
 
             ViewBag.Income = SelectedTransactions
-                .Where(i => i.Category.Type == "Income")
+                .Where(i => i.Category.Type == CategoryType.Income)
                 .GroupBy(j => j.Category.CategoryId)
                 .Select(k => new
                 {
