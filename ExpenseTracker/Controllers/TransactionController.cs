@@ -87,14 +87,27 @@ namespace ExpenseTracker.Controllers
             var userId = GetCurrentUserId();
             PopulateCategories();
             ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.UserId == userId), "CategoryId", "CategoryId");
+            
             if (id == 0)
-                return View(new Transaction());
+            {
+                return View(new TransactionViewModel());
+            }
             else
             {
                 var transaction = _context.Transactions.FirstOrDefault(t => t.TransactionId == id && t.UserId == userId);
                 if (transaction != null)
                 {
-                    return View(transaction);
+                    // Map Model to ViewModel
+                    var viewModel = new TransactionViewModel
+                    {
+                        TransactionId = transaction.TransactionId,
+                        Name = transaction.Name,
+                        CategoryId = transaction.CategoryId,
+                        Amount = transaction.Amount,
+                        Note = transaction.Note,
+                        Date = transaction.Date
+                    };
+                    return View(viewModel);
                 }
                 else
                 {
@@ -104,32 +117,53 @@ namespace ExpenseTracker.Controllers
         }
 
         // POST: Transaction/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("TransactionId,UserId,Name,CategoryId,Amount,Note,Date")] Transaction transaction)
+        public async Task<IActionResult> AddOrEdit(TransactionViewModel viewModel)
         {
             var userId = GetCurrentUserId();
             if (ModelState.IsValid)
             {
-                if (transaction.TransactionId == 0)
+                if (viewModel.TransactionId == 0)
                 {
-                    transaction.UserId = userId;
+                    // Map ViewModel to new Model
+                    var transaction = new Transaction
+                    {
+                        UserId = userId,
+                        Name = viewModel.Name,
+                        CategoryId = viewModel.CategoryId,
+                        Amount = viewModel.Amount,
+                        Note = viewModel.Note,
+                        Date = viewModel.Date
+                    };
                     _context.Add(transaction);
                 }
                 else
                 {
-                    if (transaction.UserId == userId)
+                    var transaction = await _context.Transactions
+                        .FirstOrDefaultAsync(t => t.TransactionId == viewModel.TransactionId && t.UserId == userId);
+                    
+                    if (transaction != null)
                     {
+                        // Map ViewModel to existing Model
+                        transaction.Name = viewModel.Name;
+                        transaction.CategoryId = viewModel.CategoryId;
+                        transaction.Amount = viewModel.Amount;
+                        transaction.Note = viewModel.Note;
+                        transaction.Date = viewModel.Date;
+                        
                         _context.Update(transaction);
+                    }
+                    else
+                    {
+                        return NotFound();
                     }
                 }
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             PopulateCategories();
-            return View(transaction);
+            return View(viewModel);
         }
 
         // POST: Transaction/Delete/5
