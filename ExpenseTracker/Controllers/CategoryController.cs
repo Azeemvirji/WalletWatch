@@ -49,8 +49,12 @@ namespace ExpenseTracker.Controllers
                 return NotFound();
             }
 
+            var userId = GetCurrentUserId();
+            var isAdmin = await UserIsAdmin();
+
             var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.CategoryId == id);
+                .FirstOrDefaultAsync(m => m.CategoryId == id && (m.UserId == userId || isAdmin));
+
             if (category == null)
             {
                 return NotFound();
@@ -68,7 +72,15 @@ namespace ExpenseTracker.Controllers
             }
             else
             {
-                return View(_context.Categories.Find(id));
+                var userId = GetCurrentUserId();
+                var category = _context.Categories.FirstOrDefault(c => c.CategoryId == id && c.UserId == userId);
+                
+                if (category == null)
+                {
+                    return NotFound();
+                }
+                
+                return View(category);
             }
         }
 
@@ -118,8 +130,12 @@ namespace ExpenseTracker.Controllers
                 return NotFound();
             }
 
+            var userId = GetCurrentUserId();
+            var isAdmin = await UserIsAdmin();
+
             var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.CategoryId == id);
+                .FirstOrDefaultAsync(m => m.CategoryId == id && (m.UserId == userId || isAdmin));
+
             if (category == null)
             {
                 return NotFound();

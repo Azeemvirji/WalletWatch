@@ -84,14 +84,15 @@ namespace ExpenseTracker.Controllers
         // GET: Transaction/AddOrEdit
         public IActionResult AddOrEdit(int id = 0)
         {
+            var userId = GetCurrentUserId();
             PopulateCategories();
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryId");
+            ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.UserId == userId), "CategoryId", "CategoryId");
             if (id == 0)
                 return View(new Transaction());
             else
             {
-                var transaction = _context.Transactions.Find(id);
-                if (transaction != null && transaction.UserId == GetCurrentUserId())
+                var transaction = _context.Transactions.FirstOrDefault(t => t.TransactionId == id && t.UserId == userId);
+                if (transaction != null)
                 {
                     return View(transaction);
                 }
