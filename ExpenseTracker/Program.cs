@@ -16,7 +16,10 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 
 builder.Services.Configure<IdentityOptions>(options => options.Password.RequireNonAlphanumeric = false);
 
-Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(builder.Configuration.GetValue<string>("SyncFusion"));
+builder.Services.Configure<SyncfusionSettings>(builder.Configuration.GetSection("Syncfusion"));
+
+var syncfusionSettings = builder.Configuration.GetSection("Syncfusion").Get<SyncfusionSettings>();
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionSettings?.LicenseKey);
 
 var app = builder.Build();
 
