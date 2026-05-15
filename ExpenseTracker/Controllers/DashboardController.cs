@@ -20,43 +20,29 @@ namespace ExpenseTracker.Controllers
 
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                DateTime date = DateTime.Today;
+            DateTime date = DateTime.Today;
 
-                DateTime StartDate = GetMonthStartDate(date);
-                DateTime EndDate = GetMonthEndDate(date);
+            DateTime StartDate = GetMonthStartDate(date);
+            DateTime EndDate = GetMonthEndDate(date);
 
-                ViewData["Date"] = StartDate;
+            ViewData["Date"] = StartDate;
 
-                await PrepareDateForView(StartDate, EndDate);
+            await PrepareDateForView(StartDate, EndDate);
 
-                return View();
-            }
-            catch (Exception ex)
-            {
-                return RedirectToRoute("Error");
-            }
+            return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> Index(DateTime date)
         {
-            try
-            {
-                DateTime StartDate = GetMonthStartDate(date);
-                DateTime EndDate = GetMonthEndDate(date);
+            DateTime StartDate = GetMonthStartDate(date);
+            DateTime EndDate = GetMonthEndDate(date);
 
-                ViewData["Date"] = StartDate;
+            ViewData["Date"] = StartDate;
 
-                await PrepareDateForView(StartDate, EndDate);
+            await PrepareDateForView(StartDate, EndDate);
 
-                return View();
-            }
-            catch (Exception ex)
-            {
-                return RedirectToRoute("Error");
-            }
+            return View();
         }
 
         public async Task PrepareDateForView(DateTime start, DateTime end)

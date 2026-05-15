@@ -25,108 +25,80 @@ namespace ExpenseTracker.Controllers
         // GET: Transaction
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                DateTime date = DateTime.Today;
+            DateTime date = DateTime.Today;
 
-                DateTime startDate = GetMonthStartDate(date);
-                DateTime endDate = GetMonthEndDate(date);
+            DateTime startDate = GetMonthStartDate(date);
+            DateTime endDate = GetMonthEndDate(date);
 
-                ViewData["startDate"] = startDate;
-                ViewData["endDate"] = endDate;
+            ViewData["startDate"] = startDate;
+            ViewData["endDate"] = endDate;
 
-                var applicationDbContext = _context.Transactions.Where(t => t.UserId == GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
-                return View(await applicationDbContext.ToListAsync());
-            }
-            catch (Exception ex)
-            {
-                return RedirectToRoute("Error");
-            }
+            var applicationDbContext = _context.Transactions.Where(t => t.UserId == GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
+            return View(await applicationDbContext.ToListAsync());
         }
 
         [HttpPost]
         public async Task<IActionResult> Index(DateTime startDate, DateTime endDate, string button)
         {
-            try
+            DateTime date = DateTime.Today;
+
+            if (button == "This Week")
             {
-                DateTime date = DateTime.Today;
+                var start = DayOfWeek.Monday - date.DayOfWeek;
 
-                if (button == "This Week")
-                {
-                    var start = DayOfWeek.Monday - date.DayOfWeek;
-
-                    startDate = date.AddDays(start);
-                    endDate = startDate.AddDays(6);
-                }
-                else if (button == "This Month")
-                {
-                    startDate = GetMonthStartDate(date);
-                    endDate = GetMonthEndDate(date);
-                }
-
-                ViewData["startDate"] = startDate;
-                ViewData["endDate"] = endDate;
-
-                var applicationDbContext = _context.Transactions.Where(t => t.UserId == GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
-                return View(await applicationDbContext.ToListAsync());
+                startDate = date.AddDays(start);
+                endDate = startDate.AddDays(6);
             }
-            catch (Exception ex)
+            else if (button == "This Month")
             {
-                return RedirectToRoute("Error");
+                startDate = GetMonthStartDate(date);
+                endDate = GetMonthEndDate(date);
             }
+
+            ViewData["startDate"] = startDate;
+            ViewData["endDate"] = endDate;
+
+            var applicationDbContext = _context.Transactions.Where(t => t.UserId == GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
+            return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: Transaction/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            try
+            if (id == null || _context.Transactions == null)
             {
-                if (id == null || _context.Transactions == null)
-                {
-                    return NotFound();
-                }
-
-                var transaction = await _context.Transactions
-                    .Include(t => t.Category)
-                    .FirstOrDefaultAsync(m => m.TransactionId == id && m.UserId == GetCurrentUserId());
-                if (transaction == null)
-                {
-                    return NotFound();
-                }
-
-                return View(transaction);
+                return NotFound();
             }
-            catch (Exception ex)
+
+            var transaction = await _context.Transactions
+                .Include(t => t.Category)
+                .FirstOrDefaultAsync(m => m.TransactionId == id && m.UserId == GetCurrentUserId());
+            if (transaction == null)
             {
-                return RedirectToRoute("Error");
+                return NotFound();
             }
+
+            return View(transaction);
         }
 
         // GET: Transaction/AddOrEdit
         public IActionResult AddOrEdit(int id = 0)
         {
-            try
+            PopulateCategories();
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryId");
+            if (id == 0)
+                return View(new Transaction());
+            else
             {
-                PopulateCategories();
-                ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryId");
-                if (id == 0)
-                    return View(new Transaction());
+                var transaction = _context.Transactions.Find(id);
+                if (transaction != null && transaction.UserId == GetCurrentUserId())
+                {
+                    return View(transaction);
+                }
                 else
                 {
-                    var transaction = _context.Transactions.Find(id);
-                    if (transaction != null && transaction.UserId == GetCurrentUserId())
-                    {
-                        return View(transaction);
-                    }
-                    else
-                    {
-                        return NotFound();
-                    }
+                    return NotFound();
                 }
-            }
-            catch (Exception ex)
-            {
-                return RedirectToRoute("Error");
             }
         }
 
@@ -137,33 +109,26 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddOrEdit([Bind("TransactionId,UserId,Name,CategoryId,Amount,Note,Date")] Transaction transaction)
         {
-            try
+            var userId = GetCurrentUserId();
+            if (ModelState.IsValid)
             {
-                var userId = GetCurrentUserId();
-                if (ModelState.IsValid)
+                if (transaction.TransactionId == 0)
                 {
-                    if (transaction.TransactionId == 0)
-                    {
-                        transaction.UserId = userId;
-                        _context.Add(transaction);
-                    }
-                    else
-                    {
-                        if (transaction.UserId == userId)
-                        {
-                            _context.Update(transaction);
-                        }
-                    }
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    transaction.UserId = userId;
+                    _context.Add(transaction);
                 }
-                PopulateCategories();
-                return View(transaction);
+                else
+                {
+                    if (transaction.UserId == userId)
+                    {
+                        _context.Update(transaction);
+                    }
+                }
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
-            {
-                return RedirectToRoute("Error");
-            }
+            PopulateCategories();
+            return View(transaction);
         }
 
         // POST: Transaction/Delete/5
@@ -171,25 +136,18 @@ namespace ExpenseTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            try
+            if (_context.Transactions == null)
             {
-                if (_context.Transactions == null)
-                {
-                    return Problem("Entity set 'ApplicationDbContext.Transactions'  is null.");
-                }
-                var transaction = await _context.Transactions.FindAsync(id);
-                if (transaction != null && transaction.UserId == GetCurrentUserId())
-                {
-                    _context.Transactions.Remove(transaction);
-                }
+                return Problem("Entity set 'ApplicationDbContext.Transactions'  is null.");
+            }
+            var transaction = await _context.Transactions.FindAsync(id);
+            if (transaction != null && transaction.UserId == GetCurrentUserId())
+            {
+                _context.Transactions.Remove(transaction);
+            }
 
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                return RedirectToRoute("Error");
-            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         private bool TransactionExists(int id)
