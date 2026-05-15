@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,23 +12,21 @@ using Microsoft.AspNetCore.Identity;
 namespace ExpenseTracker.Controllers
 {
     [Authorize]
-    public class CategoryController : Controller
+    public class CategoryController : BaseController
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public CategoryController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+            : base(userManager)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         // GET: Category
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(this.User);
-            var userId = this.GetCurrentUserId();
-            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            var userId = GetCurrentUserId();
+            var isAdmin = await UserIsAdmin();
             if (isAdmin)
             {
                 return _context.Categories != null ?
@@ -97,9 +95,8 @@ namespace ExpenseTracker.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(this.User);
-                var userId = this.GetCurrentUserId();
-                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                var userId = GetCurrentUserId();
+                var isAdmin = await UserIsAdmin();
                 if (ModelState.IsValid)
                 {
                     if (category.CategoryId == 0)
@@ -166,9 +163,8 @@ namespace ExpenseTracker.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(this.User);
-                var userId = this.GetCurrentUserId();
-                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                var userId = GetCurrentUserId();
+                var isAdmin = await UserIsAdmin();
                 if (_context.Categories == null)
                 {
                     return Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
@@ -191,11 +187,6 @@ namespace ExpenseTracker.Controllers
         private bool CategoryExists(int id)
         {
           return (_context.Categories?.Any(e => e.CategoryId == id)).GetValueOrDefault();
-        }
-
-        private Guid GetCurrentUserId()
-        {
-            return new Guid(_userManager.GetUserId(this.User));
         }
     }
 }

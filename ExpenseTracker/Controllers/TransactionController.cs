@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,15 +12,14 @@ using Microsoft.AspNetCore.Identity;
 namespace ExpenseTracker.Controllers
 {
     [Authorize]
-    public class TransactionController : Controller
+    public class TransactionController : BaseController
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public TransactionController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+            : base(userManager)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         // GET: Transaction
@@ -36,7 +35,7 @@ namespace ExpenseTracker.Controllers
                 ViewData["startDate"] = startDate;
                 ViewData["endDate"] = endDate;
 
-                var applicationDbContext = _context.Transactions.Where(t => t.UserId == new Guid(_userManager.GetUserId(this.User)) && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
+                var applicationDbContext = _context.Transactions.Where(t => t.UserId == GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
                 return View(await applicationDbContext.ToListAsync());
             }
             catch (Exception ex)
@@ -68,7 +67,7 @@ namespace ExpenseTracker.Controllers
                 ViewData["startDate"] = startDate;
                 ViewData["endDate"] = endDate;
 
-                var applicationDbContext = _context.Transactions.Where(t => t.UserId == this.GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
+                var applicationDbContext = _context.Transactions.Where(t => t.UserId == GetCurrentUserId() && t.Date >= startDate && t.Date <= endDate).OrderByDescending(t => t.Date).Include(t => t.Category);
                 return View(await applicationDbContext.ToListAsync());
             }
             catch (Exception ex)
@@ -89,7 +88,7 @@ namespace ExpenseTracker.Controllers
 
                 var transaction = await _context.Transactions
                     .Include(t => t.Category)
-                    .FirstOrDefaultAsync(m => m.TransactionId == id && m.UserId == this.GetCurrentUserId());
+                    .FirstOrDefaultAsync(m => m.TransactionId == id && m.UserId == GetCurrentUserId());
                 if (transaction == null)
                 {
                     return NotFound();
@@ -115,7 +114,7 @@ namespace ExpenseTracker.Controllers
                 else
                 {
                     var transaction = _context.Transactions.Find(id);
-                    if (transaction != null && transaction.UserId == this.GetCurrentUserId())
+                    if (transaction != null && transaction.UserId == GetCurrentUserId())
                     {
                         return View(transaction);
                     }
@@ -140,7 +139,7 @@ namespace ExpenseTracker.Controllers
         {
             try
             {
-                var userId = this.GetCurrentUserId();
+                var userId = GetCurrentUserId();
                 if (ModelState.IsValid)
                 {
                     if (transaction.TransactionId == 0)
@@ -179,7 +178,7 @@ namespace ExpenseTracker.Controllers
                     return Problem("Entity set 'ApplicationDbContext.Transactions'  is null.");
                 }
                 var transaction = await _context.Transactions.FindAsync(id);
-                if (transaction != null && transaction.UserId == this.GetCurrentUserId())
+                if (transaction != null && transaction.UserId == GetCurrentUserId())
                 {
                     _context.Transactions.Remove(transaction);
                 }
@@ -201,8 +200,8 @@ namespace ExpenseTracker.Controllers
         [NonAction]
         public void PopulateCategories()
         {
-            var userId = this.GetCurrentUserId();
-            var isAdmin = this.userIsAdmin().Result;
+            var userId = GetCurrentUserId();
+            var isAdmin = UserIsAdmin().Result;
 
             if (isAdmin)
             {
@@ -216,32 +215,6 @@ namespace ExpenseTracker.Controllers
             //Category DefaultCategory = new Category() { CategoryId = 0, Title = "Choose a Category" };
             //CategoryCollection.Insert(0, DefaultCategory);
             //ViewBag.Categories = CategoryCollection;
-        }
-
-        public async Task<bool> userIsAdmin()
-        {
-            var user = await _userManager.GetUserAsync(this.User);
-            return await _userManager.IsInRoleAsync(user, "Admin");
-        }
-
-        private Guid GetCurrentUserId()
-        {
-            return new Guid(_userManager.GetUserId(this.User));
-        }
-
-        private DateTime GetMonthStartDate(DateTime date)
-        {
-            var startDate = new DateTime(date.Year, date.Month, 1);
-
-            return startDate;
-        }
-
-        private DateTime GetMonthEndDate(DateTime date)
-        {
-            var startDate = new DateTime(date.Year, date.Month, 1);
-            var endDate = startDate.AddMonths(1).AddDays(-1);
-
-            return endDate;
         }
     }
 }

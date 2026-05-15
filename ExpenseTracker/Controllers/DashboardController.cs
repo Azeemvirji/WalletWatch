@@ -1,4 +1,4 @@
-﻿using ExpenseTracker.Models;
+using ExpenseTracker.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,15 +8,14 @@ using System.Globalization;
 namespace ExpenseTracker.Controllers
 {
     [Authorize]
-    public class DashboardController : Controller
+    public class DashboardController : BaseController
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DashboardController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public DashboardController(ApplicationDbContext context, UserManager<ApplicationUser> userManager) 
+            : base(userManager)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -64,7 +63,7 @@ namespace ExpenseTracker.Controllers
         {
             List<Transaction> SelectedTransactions = await _context.Transactions
                 .Include(x => x.Category)
-                .Where(y => y.UserId == new Guid(_userManager.GetUserId(this.User)) && y.Date >= start && y.Date <= end)
+                .Where(y => y.UserId == GetCurrentUserId() && y.Date >= start && y.Date <= end)
                 .ToListAsync();
 
             //Total Income
@@ -110,21 +109,6 @@ namespace ExpenseTracker.Controllers
                 })
                 .OrderByDescending(l => l.amount)
                 .ToList();
-        }
-
-        private DateTime GetMonthStartDate(DateTime date)
-        {
-            var startDate = new DateTime(date.Year, date.Month, 1);
-
-            return startDate;
-        }
-
-        private DateTime GetMonthEndDate(DateTime date)
-        {
-            var startDate = new DateTime(date.Year, date.Month, 1);
-            var endDate = startDate.AddMonths(1).AddDays(-1);
-
-            return endDate;
         }
     }
 }
