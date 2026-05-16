@@ -52,8 +52,12 @@ namespace ExpenseTracker.Controllers
             var userId = GetCurrentUserId();
             var isAdmin = await UserIsAdmin();
 
+            // Allow access if:
+            // 1. User is an Admin (can see everything)
+            // 2. The category belongs to the user
+            // 3. It is a system-created category (Guid.Empty)
             var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.CategoryId == id && (m.UserId == userId || isAdmin));
+                .FirstOrDefaultAsync(m => m.CategoryId == id && (isAdmin || m.UserId == userId || m.UserId == Guid.Empty));
 
             if (category == null)
             {
@@ -73,7 +77,14 @@ namespace ExpenseTracker.Controllers
             else
             {
                 var userId = GetCurrentUserId();
-                var category = _context.Categories.FirstOrDefault(c => c.CategoryId == id && c.UserId == userId);
+                var isAdmin = UserIsAdmin().Result;
+
+                // Allow editing if:
+                // 1. User is an Admin
+                // 2. The category belongs to the user
+                // 3. It is a system category AND user is Admin (regular users shouldn't edit system categories)
+                var category = _context.Categories
+                    .FirstOrDefault(c => c.CategoryId == id && (isAdmin || c.UserId == userId));
                 
                 if (category == null)
                 {
@@ -89,7 +100,7 @@ namespace ExpenseTracker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("CategoryId,UserId,Title,Icon,Type")] Category category)
+        public async Task<IActionResult> AddOrEdit([Bind("CategoryId,UserId,Title,Icon,Type,DefaultTargetAmount,DefaultTargetPercentage")] Category category)
         {
             var userId = GetCurrentUserId();
             var isAdmin = await UserIsAdmin();
@@ -97,15 +108,7 @@ namespace ExpenseTracker.Controllers
             {
                 if (category.CategoryId == 0)
                 {
-                    //if (isAdmin)
-                    //{
-                    //    category.UserId = Guid.Empty;
-                    //}
-                    //else
-                    //{
                     category.UserId = userId;
-                    //}
-
                     _context.Add(category);
                 }
                 else

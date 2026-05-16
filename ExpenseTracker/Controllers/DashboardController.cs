@@ -18,25 +18,12 @@ namespace ExpenseTracker.Controllers
             _transactionService = transactionService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DateTime? date)
         {
-            DateTime date = DateTime.Today;
+            DateTime selectedDate = date ?? DateTime.Today;
 
-            DateTime StartDate = GetMonthStartDate(date);
-            DateTime EndDate = GetMonthEndDate(date);
-
-            ViewData["Date"] = StartDate;
-
-            await PrepareDateForView(StartDate, EndDate);
-
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Index(DateTime date)
-        {
-            DateTime StartDate = GetMonthStartDate(date);
-            DateTime EndDate = GetMonthEndDate(date);
+            DateTime StartDate = GetMonthStartDate(selectedDate);
+            DateTime EndDate = GetMonthEndDate(selectedDate);
 
             ViewData["Date"] = StartDate;
 
@@ -54,6 +41,11 @@ namespace ExpenseTracker.Controllers
             ViewBag.Balance = dashboardData.Balance;
             ViewBag.Expenses = dashboardData.ExpenseChartData;
             ViewBag.Income = dashboardData.IncomeChartData;
+
+            // Budget data
+            ViewBag.HasBudget = dashboardData.HasBudget;
+            ViewBag.ProjectedIncome = dashboardData.ProjectedIncome;
+            ViewBag.BudgetProgress = dashboardData.BudgetProgress;
         }
     }
 }

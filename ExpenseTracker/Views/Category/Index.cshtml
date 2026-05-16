@@ -30,10 +30,10 @@
 </ejs-grid>
 
 <script id="typeColumnTemplate" type="text/x-template">
-    ${if(Type=="@CategoryType.Income")}
-        <span class="badge bg-success">${Type}</span>
+    ${if(TypeString=="Income")}
+        <span class="badge bg-success">${TypeString}</span>
     ${else}
-        <span class="badge bg-danger">${Type}</span>
+        <span class="badge bg-danger">${TypeString}</span>
     ${/if}
 </script>
 

@@ -13,5 +13,16 @@ namespace ExpenseTracker.Models
 
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Budget> Budgets { get; set; }
+        public DbSet<MonthlyPlan> MonthlyPlans { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<Category>()
+                .Property(c => c.Type)
+                .HasConversion<string>();
+        }
     }
 }

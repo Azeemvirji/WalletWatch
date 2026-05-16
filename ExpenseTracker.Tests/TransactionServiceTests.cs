@@ -32,8 +32,8 @@ namespace ExpenseTracker.Tests
             var startDate = new DateTime(2023, 1, 1);
             var endDate = new DateTime(2023, 1, 31);
 
-            var categoryIncome = new Category { CategoryId = 1, Title = "Salary", Type = CategoryType.Income, UserId = userId };
-            var categoryExpense = new Category { CategoryId = 2, Title = "Rent", Type = CategoryType.Expense, UserId = userId };
+            var categoryIncome = new Category { CategoryId = 1, Title = "Salary", Type = TransactionType.Income, UserId = userId };
+            var categoryExpense = new Category { CategoryId = 2, Title = "Rent", Type = TransactionType.Expense, UserId = userId };
             
             dbContext.Categories.AddRange(categoryIncome, categoryExpense);
             dbContext.Transactions.AddRange(
@@ -62,7 +62,7 @@ namespace ExpenseTracker.Tests
             var targetMonthStart = new DateTime(2023, 2, 1);
             var targetMonthEnd = new DateTime(2023, 2, 28);
 
-            var category = new Category { CategoryId = 1, Title = "Food", Type = CategoryType.Expense, UserId = userId };
+            var category = new Category { CategoryId = 1, Title = "Food", Type = TransactionType.Expense, UserId = userId };
             dbContext.Categories.Add(category);
 
             dbContext.Transactions.AddRange(
@@ -89,7 +89,7 @@ namespace ExpenseTracker.Tests
             var userB = Guid.NewGuid();
             var date = new DateTime(2023, 1, 1);
 
-            var category = new Category { CategoryId = 1, Title = "Misc", Type = CategoryType.Expense, UserId = Guid.Empty }; // Shared category logic? Let's use specific ones
+            var category = new Category { CategoryId = 1, Title = "Misc", Type = TransactionType.Expense, UserId = Guid.Empty }; // Shared category logic? Let's use specific ones
             dbContext.Categories.Add(category);
 
             dbContext.Transactions.AddRange(

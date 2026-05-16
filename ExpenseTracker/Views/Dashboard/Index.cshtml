@@ -3,17 +3,19 @@
     var Date = ViewData["Date"];
 }
 
-<div class="row mb-3">
-    <form asp-action="Index">
-        <div class="row">
-            <div class="col-md-2">
-                <ejs-datepicker id="date" ejs-for=@Date placeholder="Select Month" floatLabelType="Auto" format="MMM-yyyy"></ejs-datepicker>
-            </div>
-            <div class="col-md-2 mt-4">
-                <ejs-button id="submit" typeof="submit" content="Get Data" cssClass="e-success"></ejs-button>
-            </div>
-        </div>
-    </form>
+<div class="row mb-4">
+    <div class="col-md-6 d-flex align-items-center">
+        <h3 class="fw-bold me-3">Dashboard</h3>
+        <ejs-datepicker id="dashboardDate" 
+                        placeholder="Select Month" 
+                        value="@Date" 
+                        format="MMMM yyyy" 
+                        start="Year" 
+                        depth="Year" 
+                        change="onDateChange"
+                        width="250px">
+        </ejs-datepicker>
+    </div>
 </div>
 
 @*Summary Widgets*@
@@ -56,6 +58,57 @@
     </div>
 </div>
 
+@if (ViewBag.HasBudget == true)
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="widget p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0">Monthly Budget Progress</h5>
+                    <span class="text-muted">Based on Projected Income: <b class="text-success">@ViewBag.ProjectedIncome</b></span>
+                </div>
+                <div class="row">
+                    @foreach (var item in ViewBag.BudgetProgress as List<ExpenseTracker.ViewModels.CategoryProgressViewModel>)
+                    {
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>@item.CategoryIcon @item.CategoryTitle</span>
+                                <span>@item.FormattedSpent / <small class="text-muted">@item.FormattedAllocated</small></span>
+                            </div>
+                            <div class="progress" style="height: 10px; background-color: #2c343f;">
+                                <div class="progress-bar @(item.ProgressPercentage > 100 ? "bg-danger" : (item.ProgressPercentage > 85 ? "bg-warning" : "bg-success"))" 
+                                     role="progressbar" 
+                                     style="width: @(Math.Min(item.ProgressPercentage, 100))%" 
+                                     aria-valuenow="@item.ProgressPercentage" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            @if (item.ProgressPercentage > 100)
+                            {
+                                <small class="text-danger">Over budget by @((item.ActualSpent - item.AllocatedAmount).ToString("C2"))</small>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="widget p-4 text-center">
+                <h5 class="text-muted">No budget plan found for this month.</h5>
+                <a href="/Budget" class="btn btn-outline-primary mt-2">
+                    <i class="fa-solid fa-plus me-2"></i>Create Budget Plan
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
 @*Doughnut and Spline Chart*@
 <div class="row mb-4">
     <div class="col-md-4">
@@ -95,6 +148,18 @@
                 <e-grid-column headerText="Category" field="categoryTitleWithIcon"></e-grid-column>
                 <e-grid-column headerText="Amount" field="formattedAmount" format="c2"></e-grid-column>
             </e-grid-columns>
-        </ejs-grid>
-    </div>
-</div>
+            </ejs-grid>
+            </div>
+            </div>
+
+            @section Scripts {
+            <script>
+            function onDateChange(args) {
+            if (args.value) {
+                const date = args.value;
+                const formattedDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-01";
+                window.location.href = "/Dashboard?date=" + formattedDate;
+            }
+            }
+            </script>
+            }

@@ -12,7 +12,13 @@ namespace ExpenseTracker.Models
         [Column(TypeName = "nvarchar(5)")]
         public string? Icon { get; set; }
         [Column(TypeName = "nvarchar(10)")]
-        public string Type { get; set; } = "Expense";
+        public TransactionType Type { get; set; } = TransactionType.Expense;
+
+        [NotMapped]
+        public string TypeString => Type.ToString();
+
+        public float? DefaultTargetPercentage { get; set; }
+
         public Guid UserId { get; set; }
 
         [NotMapped]

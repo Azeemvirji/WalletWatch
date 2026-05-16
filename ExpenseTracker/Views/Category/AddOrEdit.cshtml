@@ -19,14 +19,16 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <input type="hidden" name="CategoryId" value="@Model.CategoryId">
                 <input type="hidden" name="UserId" value="@Model.UserId" />
+
                 <div class="mb-3">
                      <div class='e-btn-group custom-rbt-group'>
-                        <input type="radio" id="radioleft" name="Type" value="@CategoryType.Expense" checked="@(Model.Type==CategoryType.Expense)" />
+                        <input type="radio" id="radioleft" name="Type" value="@TransactionType.Expense" checked="@(Model.Type==TransactionType.Expense)" />
                         <label class="e-btn" for="radioleft">Expense</label>
-                        <input type="radio" id="radiomiddle" name="Type" value="@CategoryType.Income" checked="@(Model.Type==CategoryType.Income)" />
+                        <input type="radio" id="radiomiddle" name="Type" value="@TransactionType.Income" checked="@(Model.Type==TransactionType.Income)" />
                         <label class="e-btn" for="radiomiddle">Income</label>
                     </div>
                 </div>
+                
                 <div class="mb-3">
                     <ejs-textbox id="Title" placeholder="Title" ejs-for="Title" floatLabelType="Auto"></ejs-textbox>
                     <span asp-validation-for="Title" class="text-danger"></span>
@@ -36,6 +38,13 @@
                     <span>To Add a Icon from windows, press win key + . on your keyboard</span>
                     <span asp-validation-for="Icon" class="text-danger"></span>
                 </div>
+
+                <div id="budget-defaults" class="@(Model.Type == TransactionType.Income ? "d-none" : "")">
+                    <div class="mb-3">
+                        <ejs-numerictextbox id="DefaultTargetPercentage" placeholder="Default Budget Percentage (%)" ejs-for="DefaultTargetPercentage" floatLabelType="Auto" format="n2" min="0" max="100"></ejs-numerictextbox>
+                    </div>
+                </div>
+
                 <ejs-button id="submit" typeof="submit" content="Submit" cssClass="e-success"></ejs-button>
                 @*
                     Button not working, ASP action tries to submit
@@ -47,4 +56,22 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const expenseRadio = document.getElementById('radioleft');
+            const incomeRadio = document.getElementById('radiomiddle');
+            const budgetSection = document.getElementById('budget-defaults');
+
+            function toggleBudget() {
+                if (expenseRadio.checked) {
+                    budgetSection.classList.remove('d-none');
+                } else {
+                    budgetSection.classList.add('d-none');
+                }
+            }
+
+            expenseRadio.addEventListener('change', toggleBudget);
+            incomeRadio.addEventListener('change', toggleBudget);
+        });
+    </script>
 }

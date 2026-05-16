@@ -1,0 +1,210 @@
+@model ExpenseTracker.ViewModels.MonthlyBudgetViewModel
+
+@{
+    ViewData["Title"] = "Monthly Budget";
+}
+
+<div class="row mb-4">
+    <div class="col-md-6 d-flex align-items-center">
+        <h3 class="fw-bold me-3">Monthly Budget</h3>
+        <ejs-datepicker id="budgetDate" 
+                        placeholder="Select Month" 
+                        value="@Model.SelectedDate" 
+                        format="MMMM yyyy" 
+                        start="Year" 
+                        depth="Year" 
+                        change="onDateChange"
+                        width="200px">
+        </ejs-datepicker>
+    </div>
+    <div class="col-md-6 text-end">
+        <form asp-action="UseDefaults" method="post" class="d-inline">
+            <input type="hidden" name="month" value="@Model.Month" />
+            <input type="hidden" name="year" value="@Model.Year" />
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="fa-solid fa-magic-wand-sparkles me-2"></i>Use Defaults
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="widget p-4 text-center">
+            <h6 class="text-muted mb-2">Projected Monthly Income</h6>
+            <ejs-numerictextbox id="projectedIncome" 
+                                value="@(float.Parse(Model.TotalIncome.Replace("$", "").Replace(",", "")))" 
+                                format="c2" 
+                                change="onIncomeChange"
+                                cssClass="text-center fw-bold text-success fs-3"
+                                width="80%">
+            </ejs-numerictextbox>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="widget p-4 text-center">
+            <h6 class="text-muted mb-2">Total Allocated</h6>
+            <h3 class="fw-bold text-primary mt-2" id="summaryAllocated">@Model.TotalAllocated</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="widget p-4 text-center">
+            <h6 class="text-muted mb-2">Unallocated Balance</h6>
+            <h3 class="fw-bold mt-2 @(Model.Unallocated.StartsWith("-") ? "text-danger" : "text-info")" id="summaryUnallocated">
+                @Model.Unallocated
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="widget p-4">
+            <ejs-grid id="budgetGrid" dataSource="@Model.CategoryBudgets" 
+                      allowPaging="false" 
+                      gridLines="None"
+                      actionComplete="onActionComplete">
+                <e-grid-editSettings allowEditing="true" mode="Normal" showConfirmDialog="false"></e-grid-editSettings>
+                <e-grid-columns>
+                    <e-grid-column field="CategoryId" isPrimaryKey="true" visible="false"></e-grid-column>
+                    <e-grid-column headerText="Category" field="CategoryTitle" allowEditing="false" width="200" template="#categoryTemplate"></e-grid-column>
+                    <e-grid-column headerText="Target Percentage (%)" field="TargetPercentage" format="n2" editType="numericEdit" textAlign="Right"></e-grid-column>
+                    <e-grid-column headerText="Calculated Limit" field="CalculatedAmount" format="c2" allowEditing="false" textAlign="Right" customAttributes="@(new { @class = "fw-bold" })"></e-grid-column>
+                </e-grid-columns>
+            </ejs-grid>
+        </div>
+    </div>
+</div>
+
+@* Add Category Section *@
+<div class="row">
+    <div class="col-md-12">
+        <div class="widget p-4">
+            <div class="d-flex align-items-center">
+                <h5 class="fw-bold m-0 me-4">Add Category to Budget</h5>
+                <div class="flex-grow-1 me-3">
+                    <ejs-dropdownlist id="availableCategories" 
+                                      dataSource="@Model.AvailableCategories" 
+                                      placeholder="Select a category to add"
+                                      popupHeight="220px">
+                        <e-dropdownlist-fields text="Title" value="CategoryId"></e-dropdownlist-fields>
+                    </ejs-dropdownlist>
+                </div>
+                <button class="btn btn-success" onclick="addCategory()">
+                    <i class="fa-solid fa-plus me-2"></i>Add to Budget
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="categoryTemplate" type="text/x-template">
+    <div class="d-flex align-items-center">
+        <span class="me-2">${CategoryIcon}</span>
+        <span>${CategoryTitle}</span>
+    </div>
+</script>
+
+@section Scripts {
+    <script>
+        function onDateChange(args) {
+            if (args.value) {
+                const date = args.value;
+                const formattedDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-01";
+                window.location.href = "/Budget?date=" + formattedDate;
+            }
+        }
+
+        async function onIncomeChange(args) {
+            if (args.isInteracted) {
+                const response = await fetch('/Budget/UpdateExpectedIncome', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        Month: @Model.Month,
+                        Year: @Model.Year,
+                        ExpectedIncome: args.value
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                }
+            }
+        }
+
+        async function addCategory() {
+            const dropdown = document.getElementById('availableCategories').ej2_instances[0];
+            const categoryId = dropdown.value;
+
+            if (!categoryId) {
+                alert("Please select a category first.");
+                return;
+            }
+
+            const response = await fetch('/Budget/AddCategory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    CategoryId: categoryId,
+                    Month: @Model.Month,
+                    Year: @Model.Year
+                })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            }
+        }
+
+        async function onActionComplete(args) {
+            if (args.requestType === 'save') {
+                const data = args.data;
+                
+                const response = await fetch('/Budget/UpdateBudget', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        CategoryId: data.CategoryId,
+                        Month: @Model.Month,
+                        Year: @Model.Year,
+                        TargetPercentage: data.TargetPercentage
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                }
+            }
+        }
+    </script>
+}
+
+<style>
+    .widget {
+        background-color: #1a222b;
+        border-radius: 1rem;
+    }
+    .e-grid {
+        border: none !important;
+    }
+    .e-grid .e-headercell {
+        background-color: transparent !important;
+    }
+    .e-grid .e-row {
+        background-color: transparent !important;
+    }
+    /* Style for the numeric textbox in the widget */
+    .e-numeric.e-control-wrapper.text-center input {
+        text-align: center !important;
+    }
+</style>
